@@ -62,7 +62,6 @@ static struct sk_buff *ipv6_gso_segment(struct sk_buff *skb,
 	const struct net_offload *ops;
 	int proto;
 	struct frag_hdr *fptr;
-	unsigned int unfrag_ip6hlen;
 	u8 *prevhdr;
 	int offset = 0;
 	bool encap, udpfrag;
@@ -121,8 +120,12 @@ static struct sk_buff *ipv6_gso_segment(struct sk_buff *skb,
 		skb->network_header = (u8 *)ipv6h - skb->head;
 
 		if (udpfrag) {
-			unfrag_ip6hlen = ip6_find_1stfragopt(skb, &prevhdr);
-			fptr = (struct frag_hdr *)((u8 *)ipv6h + unfrag_ip6hlen);
+			int err = ip6_find_1stfragopt(skb, &prevhdr);
+			if (err < 0) {
+				kfree_skb_list(segs);
+				return ERR_PTR(err);
+			}
+			fptr = (struct frag_hdr *)((u8 *)ipv6h + err);
 			fptr->frag_off = htons(offset);
 			if (skb->next != NULL)
 				fptr->frag_off |= htons(IP6_MF);
@@ -297,7 +300,7 @@ static struct packet_offload ipv6_packet_offload __read_mostly = {
 	.type = cpu_to_be16(ETH_P_IPV6),
 	.callbacks = {
 		.gso_segment = ipv6_gso_segment,
-		.gro_receive = ipv6_gro_receive,
+		.gro_receive	= sit_gro_receive,
 		.gro_complete = ipv6_gro_complete,
 	},
 };
