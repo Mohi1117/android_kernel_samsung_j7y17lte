@@ -417,7 +417,7 @@ CONFIG_SETEND_EMULATION=y
 #
 # Boot options
 #
-CONFIG_CMDLINE="androidboot.selinux=permissive"
+CONFIG_CMDLINE=""
 # CONFIG_EFI is not set
 CONFIG_TIMA=y
 CONFIG_TIMA_LKMAUTH=y
