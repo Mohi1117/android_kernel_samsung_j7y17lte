@@ -315,6 +315,7 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
 	info->timer->work_pending = false;
 	info->timer->uid = 0;
 	get_monotonic_boottime(&info->timer->last_modified_timer);
+	get_monotonic_boottime(&info->timer->last_suspend_time);
 
 	info->timer->pm_nb.notifier_call = idletimer_resume;
 	ret = register_pm_notifier(&info->timer->pm_nb);
@@ -454,6 +455,7 @@ static void idletimer_tg_destroy(const struct xt_tgdtor_param *par)
 
 		list_del(&info->timer->entry);
 		del_timer_sync(&info->timer->timer);
+		cancel_work_sync(&info->timer->work);
 		sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
 		unregister_pm_notifier(&info->timer->pm_nb);
 		kfree(info->timer->attr.attr.name);

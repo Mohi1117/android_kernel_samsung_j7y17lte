@@ -485,7 +485,6 @@ static void iscsi_target_login_timeout(unsigned long data)
 {
 	struct iscsi_conn *conn = (struct iscsi_conn *)data;
 
-	pr_debug("Entering iscsi_target_login_timeout >>>>>>>>>>>>>>>>>>>\n");
 
 	if (conn->login_kworker) {
 		pr_debug("Sending SIGINT to conn->login_kworker %s/%d\n",

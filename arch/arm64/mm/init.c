@@ -329,6 +329,12 @@ void free_initmem(void)
 {
 	free_initmem_default(0);
 	free_alternatives_memory();
+#ifdef CONFIG_TIMA_RKP
+#ifdef CONFIG_KNOX_KAP
+	if (boot_mode_security)
+#endif
+		rkp_call(RKP_DEF_INIT, 0, 0, 0, 0, 0);
+#endif
 }
 
 #ifdef CONFIG_BLK_DEV_INITRD

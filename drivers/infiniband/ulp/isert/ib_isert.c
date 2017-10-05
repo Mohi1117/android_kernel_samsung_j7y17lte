@@ -153,7 +153,6 @@ isert_conn_setup_qp(struct isert_conn *isert_conn, struct rdma_cm_id *cma_id)
 		goto err;
 	}
 	isert_conn->conn_qp = cma_id->qp;
-	pr_debug("rdma_create_qp() returned success >>>>>>>>>>>>>>>>>>>>>>>>>.\n");
 
 	return 0;
 err:
@@ -743,7 +742,6 @@ isert_connect_release(struct isert_conn *isert_conn)
 	struct isert_device *device = isert_conn->conn_device;
 	int cq_index;
 
-	pr_debug("Entering isert_connect_release(): >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
 
 	if (device && device->use_fastreg)
 		isert_conn_free_fastreg_pool(isert_conn);
@@ -778,7 +776,6 @@ isert_connect_release(struct isert_conn *isert_conn)
 	if (device)
 		isert_device_try_release(device);
 
-	pr_debug("Leaving isert_connect_release >>>>>>>>>>>>\n");
 }
 
 static void
@@ -1118,7 +1115,6 @@ isert_rdma_post_recvl(struct isert_conn *isert_conn)
 		isert_conn->post_recv_buf_count--;
 	}
 
-	pr_debug("ib_post_recv(): returned success >>>>>>>>>>>>>>>>>>>>>>>>\n");
 	return ret;
 }
 
@@ -1920,7 +1916,6 @@ isert_do_control_comp(struct work_struct *work)
 
 	switch (cmd->i_state) {
 	case ISTATE_SEND_TASKMGTRSP:
-		pr_debug("Calling iscsit_tmr_post_handler >>>>>>>>>>>>>>>>>\n");
 
 		atomic_dec(&isert_conn->post_send_buf_count);
 		iscsit_tmr_post_handler(cmd, cmd->conn);
@@ -1936,7 +1931,6 @@ isert_do_control_comp(struct work_struct *work)
 		isert_completion_put(&isert_cmd->tx_desc, isert_cmd, ib_dev, false);
 		break;
 	case ISTATE_SEND_LOGOUTRSP:
-		pr_debug("Calling iscsit_logout_post_handler >>>>>>>>>>>>>>\n");
 
 		atomic_dec(&isert_conn->post_send_buf_count);
 		iscsit_logout_post_handler(cmd, cmd->conn);
@@ -2168,7 +2162,6 @@ isert_cq_tx_work(struct work_struct *work)
 		if (wc.status == IB_WC_SUCCESS) {
 			isert_send_completion(tx_desc, isert_conn);
 		} else {
-			pr_debug("TX wc.status != IB_WC_SUCCESS >>>>>>>>>>>>>>\n");
 			pr_debug("TX wc.status: 0x%08x\n", wc.status);
 			pr_debug("TX wc.vendor_err: 0x%08x\n", wc.vendor_err);
 
@@ -2214,7 +2207,6 @@ isert_cq_rx_work(struct work_struct *work)
 			xfer_len = (unsigned long)wc.byte_len;
 			isert_rx_completion(rx_desc, isert_conn, xfer_len);
 		} else {
-			pr_debug("RX wc.status != IB_WC_SUCCESS >>>>>>>>>>>>>>\n");
 			if (wc.status != IB_WC_WR_FLUSH_ERR) {
 				pr_debug("RX wc.status: 0x%08x\n", wc.status);
 				pr_debug("RX wc.vendor_err: 0x%08x\n",
@@ -2297,7 +2289,6 @@ isert_put_response(struct iscsi_conn *conn, struct iscsi_cmd *cmd)
 
 	isert_init_send_wr(isert_conn, isert_cmd, send_wr, false);
 
-	pr_debug("Posting SCSI Response IB_WR_SEND >>>>>>>>>>>>>>>>>>>>>>\n");
 
 	return isert_post_response(isert_conn, isert_cmd);
 }
@@ -2355,7 +2346,6 @@ isert_put_nopin(struct iscsi_cmd *cmd, struct iscsi_conn *conn,
 	isert_init_tx_hdrs(isert_conn, &isert_cmd->tx_desc);
 	isert_init_send_wr(isert_conn, isert_cmd, send_wr, false);
 
-	pr_debug("Posting NOPIN Response IB_WR_SEND >>>>>>>>>>>>>>>>>>>>>>\n");
 
 	return isert_post_response(isert_conn, isert_cmd);
 }
@@ -2373,7 +2363,6 @@ isert_put_logout_rsp(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
 	isert_init_tx_hdrs(isert_conn, &isert_cmd->tx_desc);
 	isert_init_send_wr(isert_conn, isert_cmd, send_wr, false);
 
-	pr_debug("Posting Logout Response IB_WR_SEND >>>>>>>>>>>>>>>>>>>>>>\n");
 
 	return isert_post_response(isert_conn, isert_cmd);
 }
@@ -2391,7 +2380,6 @@ isert_put_tm_rsp(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
 	isert_init_tx_hdrs(isert_conn, &isert_cmd->tx_desc);
 	isert_init_send_wr(isert_conn, isert_cmd, send_wr, false);
 
-	pr_debug("Posting Task Management Response IB_WR_SEND >>>>>>>>>>>>>>>>>>>>>>\n");
 
 	return isert_post_response(isert_conn, isert_cmd);
 }
@@ -2423,7 +2411,6 @@ isert_put_reject(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
 
 	isert_init_send_wr(isert_conn, isert_cmd, send_wr, false);
 
-	pr_debug("Posting Reject IB_WR_SEND >>>>>>>>>>>>>>>>>>>>>>\n");
 
 	return isert_post_response(isert_conn, isert_cmd);
 }
@@ -2463,7 +2450,6 @@ isert_put_text_rsp(struct iscsi_cmd *cmd, struct iscsi_conn *conn)
 	}
 	isert_init_send_wr(isert_conn, isert_cmd, send_wr, false);
 
-	pr_debug("Posting Text Response IB_WR_SEND >>>>>>>>>>>>>>>>>>>>>>\n");
 
 	return isert_post_response(isert_conn, isert_cmd);
 }
@@ -3237,7 +3223,6 @@ isert_rdma_accept(struct isert_conn *isert_conn)
 	cp.retry_count = 7;
 	cp.rnr_retry_count = 7;
 
-	pr_debug("Before rdma_accept >>>>>>>>>>>>>>>>>>>>.\n");
 
 	ret = rdma_accept(cm_id, &cp);
 	if (ret) {
@@ -3245,7 +3230,6 @@ isert_rdma_accept(struct isert_conn *isert_conn)
 		return ret;
 	}
 
-	pr_debug("After rdma_accept >>>>>>>>>>>>>>>>>>>>>.\n");
 
 	return 0;
 }
